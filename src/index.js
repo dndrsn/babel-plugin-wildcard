@@ -49,11 +49,11 @@ export default function (babel) {
 
 
                 // Get current filename so we can try to determine the folder
-                var name = state.file.opts.filename;
+                var srcFile = state.file.opts.filename;
 
                 var files = [];
                 var isDirs = [];
-                var dir = _path.join(_path.dirname(name), src); // path of the target dir.
+                var dir = _path.join(_path.dirname(srcFile), src); // path of the target dir.
 
                 for (var i = node.specifiers.length - 1; i >= 0; i--) {
                     dec = node.specifiers[i];
@@ -112,15 +112,17 @@ export default function (babel) {
                     try {
                         let r = _fs.readdirSync(dir);
                         for (var i = 0; i < r.length; i++) {
-                            // Check extension is of one of the aboves
                             const {name, ext} = _path.parse(r[i]);
-                            if (exts.indexOf(ext.substring(1)) > -1 && filenameRegex.test(name)) {
+                            const isSrcFile = _path.join(dir, r[i]) === srcFile;
+                            const isExtMatch = exts.indexOf(ext.substring(1)) > -1;
+                            const isNameMatch = filenameRegex.test(name);
+                            if (!isSrcFile && isExtMatch && isNameMatch) {
                                 files.push(r[i]);
                                 isDirs.push(!ext);
                             }
                         }
                     } catch(e) {
-                        console.warn(`Wildcard for ${name} points at ${src} which is not a directory.`);
+                        console.warn(`Wildcard for ${srcFile} points at ${src} which is not a directory.`);
                         return;
                     }
 
